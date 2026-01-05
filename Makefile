@@ -23,7 +23,7 @@ test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
 	@go test -coverprofile=coverage.out -covermode=atomic ./...
 	@echo "\nFiltering out testutil from coverage..."
-	@grep -v "internal/testutil" coverage.out > coverage-filtered.out || true
+	@grep -v "internal/testutil" coverage.out > coverage-filtered.out 2>/dev/null || cp coverage.out coverage-filtered.out
 	@mv coverage-filtered.out coverage.out
 	@echo "\nCoverage Summary (excluding testutil):"
 	@go tool cover -func=coverage.out | grep total
@@ -40,7 +40,7 @@ test-ci: ## Simulate CI environment (race + coverage check)
 	@echo "Running CI tests..."
 	@go test -race -coverprofile=coverage.out -covermode=atomic ./...
 	@echo "\nFiltering out testutil from coverage..."
-	@grep -v "internal/testutil" coverage.out > coverage-filtered.out || true
+	@grep -v "internal/testutil" coverage.out > coverage-filtered.out 2>/dev/null || cp coverage.out coverage-filtered.out
 	@mv coverage-filtered.out coverage.out
 	@echo "\nChecking coverage threshold..."
 	@./scripts/check-coverage.sh 90

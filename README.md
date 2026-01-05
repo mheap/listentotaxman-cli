@@ -697,7 +697,7 @@ done
 
 ### Running Tests
 
-The project maintains comprehensive test coverage with over 125 test cases.
+The project maintains comprehensive test coverage with 200 test cases.
 
 ```bash
 # Run all tests (quiet mode)
@@ -712,11 +712,14 @@ make test-race
 # Generate coverage report
 make test-coverage
 # Opens coverage.html in your browser
+
+# Run CI checks (includes coverage threshold)
+make test-ci
 ```
 
 ### Test Coverage
 
-The project maintains **≥90% test coverage** target across core packages. Coverage is tracked but not yet enforced in CI.
+The project maintains **≥90% test coverage** (91.3%) across core packages. Coverage excludes the `internal/testutil` package as it contains test helpers.
 
 View coverage report:
 ```bash
@@ -726,10 +729,10 @@ xdg-open coverage.html  # Linux
 ```
 
 Current coverage by package:
-- `internal/client`: 82.6% (HTTP client, API interactions)
-- `internal/config`: 91.4% (Configuration loading)
-- `internal/display`: 39.3% (Display formatting)
-- `cmd`: 17.3% (Command logic, validation)
+- `internal/config`: 94.3% (Configuration loading)
+- `internal/display`: 94.0% (Display formatting)
+- `cmd`: 88.9% (Command logic, validation, integration)
+- `internal/client`: 79.2% (HTTP client, API interactions)
 
 ### Updating Golden Files
 
@@ -746,14 +749,22 @@ git diff .goldenfiles/
 ### Test Structure
 
 ```
-cmd/                    - Command tests (validation, parsing, integration)
-  check_test.go        - Validation logic tests
-  check_logic_test.go  - Calculation and date logic tests
-internal/client/        - API client tests (HTTP mocking)
-internal/config/        - Configuration loading tests
-internal/display/       - Display formatting tests (with stdout capture)
-internal/testutil/      - Shared test utilities and mocks
-.goldenfiles/          - Golden file snapshots for display tests
+cmd/                          - Command tests (validation, parsing, integration)
+  check_test.go              - Validation logic tests
+  check_logic_test.go        - Calculation and date logic tests
+  check_integration_test.go  - End-to-end check command tests
+  compare_parsing_test.go    - Argument parsing tests
+  compare_validation_test.go - Input validation tests
+  compare_integration_test.go - End-to-end compare command tests
+internal/client/              - API client tests (HTTP mocking)
+internal/config/              - Configuration loading tests
+internal/display/             - Display formatting tests
+  table_test.go              - Table display tests
+  compare_test.go            - Comparison display tests
+internal/testutil/            - Shared test utilities and mocks
+  testutil.go                - Test helpers (excluded from coverage)
+  mocks.go                   - HTTP mocking
+  fixtures.go                - Test data
 ```
 
 ### Writing Tests
