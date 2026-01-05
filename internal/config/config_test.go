@@ -16,9 +16,12 @@ func TestLoad_NoConfigFile(t *testing.T) {
 	// Set HOME to a temp directory with no config file
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
+	originalUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", tempDir)
+	os.Setenv("USERPROFILE", tempDir)
 	t.Cleanup(func() {
 		os.Setenv("HOME", originalHome)
+		os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Execute
@@ -112,9 +115,12 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	require.NoError(t, err)
 
 	originalHome := os.Getenv("HOME")
+	originalUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", tempDir)
+	os.Setenv("USERPROFILE", tempDir)
 	t.Cleanup(func() {
 		os.Setenv("HOME", originalHome)
+		os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Execute
@@ -131,9 +137,12 @@ func TestLoad_AllDefaultFields(t *testing.T) {
 	// Set HOME to a temp directory with no config file
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
+	originalUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", tempDir)
+	os.Setenv("USERPROFILE", tempDir)
 	t.Cleanup(func() {
 		os.Setenv("HOME", originalHome)
+		os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	tests := []struct {
@@ -214,9 +223,12 @@ func TestGetString_NotInConfig(t *testing.T) {
 	// Set HOME to a temp directory with no config file
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
+	originalUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", tempDir)
+	os.Setenv("USERPROFILE", tempDir)
 	t.Cleanup(func() {
 		os.Setenv("HOME", originalHome)
+		os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Load config (no file exists)

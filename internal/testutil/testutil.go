@@ -32,11 +32,15 @@ func CreateTempConfigFile(t *testing.T, content string) string {
 	err = os.WriteFile(configFile, []byte(content), 0644)
 	require.NoError(t, err, "failed to write temp config file")
 
-	// Update HOME to point to temp directory for config loading
+	// Update HOME and USERPROFILE to point to temp directory for config loading
+	// HOME is used on Unix/macOS, USERPROFILE is used on Windows
 	originalHome := os.Getenv("HOME")
+	originalUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", tempDir)
+	os.Setenv("USERPROFILE", tempDir)
 	t.Cleanup(func() {
 		os.Setenv("HOME", originalHome)
+		os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	return configDir
