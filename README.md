@@ -4,7 +4,85 @@ A command-line interface for calculating UK tax and national insurance using the
 
 ## Installation
 
-### Using Go Install
+### Homebrew (macOS/Linux)
+
+The easiest way to install on macOS or Linux:
+
+```bash
+brew install mheap/tap/listentotaxman
+```
+
+To upgrade:
+```bash
+brew upgrade mheap/tap/listentotaxman
+```
+
+### Docker
+
+Run using Docker without installing:
+
+```bash
+# Pull the latest image
+docker pull mheap/listentotaxman:latest
+
+# Run a command
+docker run --rm mheap/listentotaxman:latest check --income 100000
+
+# With config file support (mount your local config)
+docker run --rm \
+  -v ~/.config/listentotaxman:/home/appuser/.config/listentotaxman \
+  mheap/listentotaxman:latest check --income 100000
+
+# Create an alias for convenience
+alias listentotaxman='docker run --rm -v ~/.config/listentotaxman:/home/appuser/.config/listentotaxman mheap/listentotaxman:latest'
+```
+
+**Available tags:**
+- `latest` - Latest stable release
+- `0.1.0` - Specific version
+- `0.1` - Latest patch version of 0.1.x
+
+### Pre-built Binaries
+
+Download pre-built binaries from [GitHub Releases](https://github.com/mheap/listentotaxman-cli/releases):
+
+**Linux (x86_64):**
+```bash
+curl -L https://github.com/mheap/listentotaxman-cli/releases/latest/download/listentotaxman_linux_amd64.tar.gz | tar xz
+sudo mv listentotaxman /usr/local/bin/
+```
+
+**Linux (ARM64):**
+```bash
+curl -L https://github.com/mheap/listentotaxman-cli/releases/latest/download/listentotaxman_linux_arm64.tar.gz | tar xz
+sudo mv listentotaxman /usr/local/bin/
+```
+
+**macOS (Intel):**
+```bash
+curl -L https://github.com/mheap/listentotaxman-cli/releases/latest/download/listentotaxman_darwin_amd64.tar.gz | tar xz
+sudo mv listentotaxman /usr/local/bin/
+```
+
+**macOS (Apple Silicon):**
+```bash
+curl -L https://github.com/mheap/listentotaxman-cli/releases/latest/download/listentotaxman_darwin_arm64.tar.gz | tar xz
+sudo mv listentotaxman /usr/local/bin/
+```
+
+**Windows (x86_64):**
+1. Download `listentotaxman_windows_amd64.zip` from [releases](https://github.com/mheap/listentotaxman-cli/releases)
+2. Extract the archive
+3. Add the directory to your PATH
+
+**Windows (ARM64):**
+1. Download `listentotaxman_windows_arm64.zip` from [releases](https://github.com/mheap/listentotaxman-cli/releases)
+2. Extract the archive
+3. Add the directory to your PATH
+
+### Go Install
+
+If you have Go 1.22+ installed:
 
 ```bash
 go install github.com/mheap/listentotaxman-cli@latest
@@ -16,6 +94,32 @@ go install github.com/mheap/listentotaxman-cli@latest
 git clone https://github.com/mheap/listentotaxman-cli
 cd listentotaxman-cli
 go build -o listentotaxman
+```
+
+### Shell Completions
+
+After installation via Homebrew, completions are automatically installed.
+
+For manual installations, generate completions:
+
+```bash
+# Bash
+listentotaxman completion bash > /etc/bash_completion.d/listentotaxman
+
+# Zsh
+listentotaxman completion zsh > "${fpath[1]}/_listentotaxman"
+
+# Fish
+listentotaxman completion fish > ~/.config/fish/completions/listentotaxman.fish
+
+# PowerShell
+listentotaxman completion powershell > listentotaxman.ps1
+```
+
+### Verify Installation
+
+```bash
+listentotaxman version
 ```
 
 ## Usage

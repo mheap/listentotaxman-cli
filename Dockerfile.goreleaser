@@ -1,0 +1,11 @@
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates tzdata
+
+COPY listentotaxman /usr/local/bin/listentotaxman
+
+RUN adduser -D -u 1000 appuser
+USER appuser
+
+ENTRYPOINT ["/usr/local/bin/listentotaxman"]
+CMD ["--help"]

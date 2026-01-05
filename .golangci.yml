@@ -1,0 +1,58 @@
+run:
+  timeout: 5m
+  tests: true
+  build-tags: []
+  skip-dirs: []
+  skip-files: []
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck      # Check error returns
+    - gosimple      # Simplify code
+    - govet         # Vet examines Go source code
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Static analysis
+    - unused        # Find unused code
+    - gofmt         # Check formatting
+    - goimports     # Check imports
+    - misspell      # Spell checking
+    - goconst       # Find repeated strings that could be constants
+    - gocyclo       # Cyclomatic complexity
+    - dupl          # Code cloning
+    - revive        # Fast linter
+    - gosec         # Security
+
+linters-settings:
+  gofmt:
+    simplify: true
+  
+  goimports:
+    local-prefixes: github.com/mheap/listentotaxman-cli
+  
+  govet:
+    check-shadowing: true
+  
+  gocyclo:
+    min-complexity: 15
+  
+  misspell:
+    locale: UK
+  
+  gosec:
+    excludes: []
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - gosec
+        - dupl

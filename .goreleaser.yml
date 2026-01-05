@@ -1,0 +1,146 @@
+version: 2
+
+project_name: listentotaxman
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod tidy
+    - mkdir -p completions
+    - sh -c "go run . completion bash > completions/listentotaxman.bash"
+    - sh -c "go run . completion zsh > completions/listentotaxman.zsh"
+    - sh -c "go run . completion fish > completions/listentotaxman.fish"
+    - sh -c "go run . completion powershell > completions/listentotaxman.ps1"
+
+builds:
+  - id: listentotaxman
+    binary: listentotaxman
+    main: .
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.GitCommit={{.Commit}}
+      - -X main.BuildDate={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: listentotaxman
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+      - completions/*
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Documentation
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+brews:
+  - repository:
+      owner: mheap
+      name: homebrew-tap
+      token: "{{ .Env.GH_PAT }}"
+    folder: Formula
+    homepage: https://github.com/mheap/listentotaxman-cli
+    description: CLI for calculating UK tax and national insurance
+    license: MIT
+    install: |
+      bin.install "listentotaxman"
+      bash_completion.install "completions/listentotaxman.bash" => "listentotaxman"
+      zsh_completion.install "completions/listentotaxman.zsh" => "_listentotaxman"
+      fish_completion.install "completions/listentotaxman.fish"
+    test: |
+      system "#{bin}/listentotaxman", "version"
+
+dockers:
+  - image_templates:
+      - "mheap/listentotaxman:{{ .Version }}-amd64"
+      - "mheap/listentotaxman:latest-amd64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/mheap/listentotaxman-cli"
+    goarch: amd64
+
+  - image_templates:
+      - "mheap/listentotaxman:{{ .Version }}-arm64"
+      - "mheap/listentotaxman:latest-arm64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/mheap/listentotaxman-cli"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: mheap/listentotaxman:{{ .Version }}
+    image_templates:
+      - mheap/listentotaxman:{{ .Version }}-amd64
+      - mheap/listentotaxman:{{ .Version }}-arm64
+
+  - name_template: mheap/listentotaxman:{{ .Major }}.{{ .Minor }}
+    image_templates:
+      - mheap/listentotaxman:{{ .Version }}-amd64
+      - mheap/listentotaxman:{{ .Version }}-arm64
+
+  - name_template: mheap/listentotaxman:latest
+    image_templates:
+      - mheap/listentotaxman:latest-amd64
+      - mheap/listentotaxman:latest-arm64
+
+release:
+  github:
+    owner: mheap
+    name: listentotaxman-cli
+  draft: false
+  prerelease: auto
+  mode: replace
+  name_template: "{{ .ProjectName }} {{ .Version }}"
