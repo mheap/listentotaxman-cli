@@ -153,16 +153,68 @@ func adjustResponseForPeriod(resp *types.TaxResponse, period string) *types.TaxR
 	return &adjusted
 }
 
-func runCheck(cmd *cobra.Command, args []string) error {
+func runCheck(cmd *cobra.Command, _ []string) error {
 	// Load config file
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Build request with config defaults and flag overrides
+	// Build and validate request
+	req, err := buildCheckTaxRequest(cmd, cfg)
+	if err != nil {
+		return err
+	}
+
+	// Get and validate period
+	period, err := getPeriod(cfg)
+	if err != nil {
+		return err
+	}
+
+	// Call API
+	apiClient := checkClientFactory()
+	resp, err := apiClient.CalculateTax(req)
+	if err != nil {
+		return fmt.Errorf("failed to calculate tax: %w", err)
+	}
+
+	// Display result
+	return displayCheckResult(resp, period, req)
+}
+
+// buildCheckTaxRequest builds and validates a TaxRequest from flags and config
+func buildCheckTaxRequest(cmd *cobra.Command, cfg *config.Config) (*types.TaxRequest, error) {
 	req := &types.TaxRequest{}
 
+	// Apply flag and config values
+	applyCheckRequestDefaults(cmd, cfg, req)
+
+	// Validate the request
+	if err := validateCheckRequest(req); err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// applyCheckRequestDefaults applies flag and config values to the request
+func applyCheckRequestDefaults(cmd *cobra.Command, cfg *config.Config, req *types.TaxRequest) {
+	// Apply string fields
+	applyCheckStringFields(cfg, req)
+
+	// Apply integer and numeric fields
+	applyCheckNumericFields(cmd, cfg, req)
+
+	// Apply boolean fields
+	applyCheckBooleanFields(cmd, cfg, req)
+
+	// Normalise region (england -> uk)
+	req.TaxRegion = normalizeRegion(req.TaxRegion)
+}
+
+// applyCheckStringFields applies string flag and config values
+func applyCheckStringFields(cfg *config.Config, req *types.TaxRequest) {
 	// Year: flag > config > smart default
 	if flagYear != "" {
 		req.Year = flagYear
@@ -210,7 +262,10 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	} else if cfg.Defaults.TaxCode != "" {
 		req.TaxCode = cfg.Defaults.TaxCode
 	}
+}
 
+// applyCheckNumericFields applies numeric flag and config values
+func applyCheckNumericFields(cmd *cobra.Command, cfg *config.Config, req *types.TaxRequest) {
 	// Extra: flag > config > 0
 	if cmd.Flags().Changed("extra") {
 		req.Extra = flagExtra
@@ -221,6 +276,16 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	// Income is always from flag (required)
 	req.GrossWage = flagIncome
 
+	// Partner income: flag > config > 0
+	if cmd.Flags().Changed("partner-income") {
+		req.PartnerGrossWage = flagPartnerIncome
+	} else if cfg.Defaults.PartnerIncome != 0 {
+		req.PartnerGrossWage = cfg.Defaults.PartnerIncome
+	}
+}
+
+// applyCheckBooleanFields applies boolean flag and config values
+func applyCheckBooleanFields(cmd *cobra.Command, cfg *config.Config, req *types.TaxRequest) {
 	// Married: flag > config > default false
 	if cmd.Flags().Changed("married") {
 		if flagMarried {
@@ -247,17 +312,10 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	} else if cfg.Defaults.NoNI {
 		req.ExNI = "y"
 	}
+}
 
-	// Partner income: flag > config > 0
-	if cmd.Flags().Changed("partner-income") {
-		req.PartnerGrossWage = flagPartnerIncome
-	} else if cfg.Defaults.PartnerIncome != 0 {
-		req.PartnerGrossWage = cfg.Defaults.PartnerIncome
-	}
-
-	// Normalise region (england -> uk)
-	req.TaxRegion = normalizeRegion(req.TaxRegion)
-
+// validateCheckRequest validates the tax request
+func validateCheckRequest(req *types.TaxRequest) error {
 	// Validate year is a 4-digit number
 	if len(req.Year) != 4 {
 		return fmt.Errorf("year must be a 4-digit number, got: %s", req.Year)
@@ -283,19 +341,27 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 	// Validate student loan plan
 	if req.Plan != "" {
-		validPlans := []string{"plan1", "plan2", "plan4", "postgraduate", "scottish"}
-		isValid := false
-		for _, vp := range validPlans {
-			if req.Plan == vp {
-				isValid = true
-				break
-			}
-		}
-		if !isValid {
-			return fmt.Errorf("invalid student loan plan: %s (must be one of: plan1, plan2, plan4, postgraduate, scottish)", req.Plan)
+		if err := validateStudentLoanPlan(req.Plan); err != nil {
+			return err
 		}
 	}
 
+	return nil
+}
+
+// validateStudentLoanPlan validates the student loan plan
+func validateStudentLoanPlan(plan string) error {
+	validPlans := []string{"plan1", "plan2", "plan4", "postgraduate", "scottish"}
+	for _, vp := range validPlans {
+		if plan == vp {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid student loan plan: %s (must be one of: plan1, plan2, plan4, postgraduate, scottish)", plan)
+}
+
+// getPeriod gets and validates the period
+func getPeriod(cfg *config.Config) (string, error) {
 	// Period: flag > config > default periodYearly
 	period := periodYearly
 	if flagPeriod != "" {
@@ -305,26 +371,26 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate period
+	if err := validatePeriod(period); err != nil {
+		return "", err
+	}
+
+	return period, nil
+}
+
+// validatePeriod validates the period value
+func validatePeriod(period string) error {
 	validPeriods := []string{periodYearly, "monthly", "weekly", "daily", "hourly"}
-	isValid := false
 	for _, vp := range validPeriods {
 		if period == vp {
-			isValid = true
-			break
+			return nil
 		}
 	}
-	if !isValid {
-		return fmt.Errorf("invalid period: %s (must be one of: yearly, monthly, weekly, daily, hourly)", period)
-	}
+	return fmt.Errorf("invalid period: %s (must be one of: yearly, monthly, weekly, daily, hourly)", period)
+}
 
-	// Call API
-	apiClient := checkClientFactory()
-	resp, err := apiClient.CalculateTax(req)
-	if err != nil {
-		return fmt.Errorf("failed to calculate tax: %w", err)
-	}
-
-	// Display result
+// displayCheckResult displays the tax calculation result
+func displayCheckResult(resp *types.TaxResponse, period string, req *types.TaxRequest) error {
 	if flagJSON {
 		// Output as JSON - adjust response for period
 		adjustedResp := adjustResponseForPeriod(resp, period)

@@ -90,12 +90,10 @@ func init() {
 	rootCmd.AddCommand(compareCmd)
 }
 
-func runCompare(cmd *cobra.Command, args []string) error {
+func runCompare(cmd *cobra.Command, _ []string) error {
 	// Check for help flag early
-	for _, arg := range os.Args {
-		if arg == "--help" || arg == "-h" {
-			return cmd.Help()
-		}
+	if isHelpRequested() {
+		return cmd.Help()
 	}
 
 	// Load config file
@@ -104,27 +102,68 @@ func runCompare(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Parse global flags and comparison options from args
-	globalFlags, options, err := parseComparisonArgs(os.Args, cfg)
+	// Parse and validate options
+	globalFlags, options, err := parseAndValidateOptions(cfg)
 	if err != nil {
 		return err
 	}
 
+	// Get and validate period
+	period, err := getComparePeriod(globalFlags, cfg)
+	if err != nil {
+		return err
+	}
+
+	// Calculate tax for all options
+	results, err := calculateTaxForOptions(options)
+	if err != nil {
+		return err
+	}
+
+	// Display results
+	displayCompareResults(results, period, globalFlags)
+
+	return nil
+}
+
+// isHelpRequested checks if the user requested help
+func isHelpRequested() bool {
+	for _, arg := range os.Args {
+		if arg == "--help" || arg == "-h" {
+			return true
+		}
+	}
+	return false
+}
+
+// parseAndValidateOptions parses and validates comparison options
+func parseAndValidateOptions(cfg *config.Config) (map[string]string, []ComparisonOption, error) {
+	// Parse global flags and comparison options from args
+	globalFlags, options, err := parseComparisonArgs(os.Args, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Validate number of options
 	if len(options) < 2 {
-		return fmt.Errorf("at least 2 options required for comparison (use --option to define each scenario)")
+		return nil, nil, fmt.Errorf("at least 2 options required for comparison (use --option to define each scenario)")
 	}
 	if len(options) > 4 {
-		return fmt.Errorf("maximum 4 options supported for comparison (found %d)", len(options))
+		return nil, nil, fmt.Errorf("maximum 4 options supported for comparison (found %d)", len(options))
 	}
 
 	// Validate each option
 	for i := range options {
 		if err := validateOption(&options[i], cfg); err != nil {
-			return err
+			return nil, nil, err
 		}
 	}
 
+	return globalFlags, options, nil
+}
+
+// getComparePeriod gets and validates the period for comparison
+func getComparePeriod(globalFlags map[string]string, cfg *config.Config) (string, error) {
 	// Get period (global flag > config > default)
 	period := periodYearly
 	if periodFlag, ok := globalFlags["period"]; ok && periodFlag != "" {
@@ -134,26 +173,22 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate period
-	validPeriods := []string{periodYearly, "monthly", "weekly", "daily", "hourly"}
-	isValid := false
-	for _, vp := range validPeriods {
-		if period == vp {
-			isValid = true
-			break
-		}
-	}
-	if !isValid {
-		return fmt.Errorf("invalid period: %s (must be one of: yearly, monthly, weekly, daily, hourly)", period)
+	if err := validatePeriod(period); err != nil {
+		return "", err
 	}
 
-	// Call API for each option
+	return period, nil
+}
+
+// calculateTaxForOptions calculates tax for all comparison options
+func calculateTaxForOptions(options []ComparisonOption) ([]types.ComparisonResult, error) {
 	apiClient := clientFactory()
 	results := make([]types.ComparisonResult, len(options))
 
 	for i, opt := range options {
 		resp, err := apiClient.CalculateTax(opt.Request)
 		if err != nil {
-			return fmt.Errorf("failed to calculate tax for option '%s': %w", opt.Label, err)
+			return nil, fmt.Errorf("failed to calculate tax for option '%s': %w", opt.Label, err)
 		}
 		results[i] = types.ComparisonResult{
 			Label:    opt.Label,
@@ -162,7 +197,11 @@ func runCompare(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Display results
+	return results, nil
+}
+
+// displayCompareResults displays the comparison results
+func displayCompareResults(results []types.ComparisonResult, period string, globalFlags map[string]string) {
 	jsonFlag := globalFlags["json"] == flagValueTrue
 	verboseFlag := globalFlags["verbose"] == flagValueTrue
 
@@ -171,8 +210,6 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	} else {
 		display.Comparison(results, period, verboseFlag)
 	}
-
-	return nil
 }
 
 // parseComparisonArgs parses command-line args into global flags and comparison options
@@ -297,112 +334,84 @@ func buildTaxRequest(flags map[string]string, cfg *config.Config) (*types.TaxReq
 		Time:     "1",
 	}
 
-	// Year: flag > config > smart default
-	if val, ok := flags["year"]; ok {
-		req.Year = val
-	} else if cfg.Defaults.Year != "" {
-		req.Year = cfg.Defaults.Year
-	} else {
-		req.Year = getDefaultYear()
+	// Apply flag and config values to request
+	if err := applyCompareTaxRequestDefaults(flags, cfg, req); err != nil {
+		return nil, err
 	}
 
-	// Region: flag > config > default "uk"
-	if val, ok := flags["region"]; ok {
-		req.TaxRegion = val
-	} else if cfg.Defaults.Region != "" {
-		req.TaxRegion = cfg.Defaults.Region
-	} else {
-		req.TaxRegion = "uk"
+	return req, nil
+}
+
+// applyCompareTaxRequestDefaults applies flag and config defaults to a tax request
+func applyCompareTaxRequestDefaults(flags map[string]string, cfg *config.Config, req *types.TaxRequest) error {
+	// Apply string fields
+	applyStringField(flags, cfg, req, "year", &req.Year, cfg.Defaults.Year, getDefaultYear())
+	applyStringField(flags, cfg, req, "region", &req.TaxRegion, cfg.Defaults.Region, "uk")
+	applyStringField(flags, cfg, req, "age", &req.Age, cfg.Defaults.Age, "0")
+	applyStringField(flags, cfg, req, "pension", &req.Pension, cfg.Defaults.Pension, "")
+	applyStringField(flags, cfg, req, "student-loan", &req.Plan, cfg.Defaults.StudentLoan, "")
+	applyStringField(flags, cfg, req, "tax-code", &req.TaxCode, cfg.Defaults.TaxCode, "")
+
+	// Apply integer fields with error handling
+	if err := applyIntField(flags, cfg, req, "extra", &req.Extra, cfg.Defaults.Extra); err != nil {
+		return err
 	}
 
-	// Age: flag > config > default "0"
-	if val, ok := flags["age"]; ok {
-		req.Age = val
-	} else if cfg.Defaults.Age != "" {
-		req.Age = cfg.Defaults.Age
-	} else {
-		req.Age = "0"
+	// Income is required - check if it exists in flags
+	if _, hasIncome := flags["income"]; !hasIncome {
+		return fmt.Errorf("income is required")
+	}
+	if err := applyIntField(flags, cfg, req, "income", &req.GrossWage, 0); err != nil {
+		return err
 	}
 
-	// Pension: flag > config > empty
-	if val, ok := flags["pension"]; ok {
-		req.Pension = val
-	} else if cfg.Defaults.Pension != "" {
-		req.Pension = cfg.Defaults.Pension
+	if err := applyIntField(flags, cfg, req, "partner-income", &req.PartnerGrossWage, cfg.Defaults.PartnerIncome); err != nil {
+		return err
 	}
 
-	// Student loan: flag > config > empty
-	if val, ok := flags["student-loan"]; ok {
-		req.Plan = val
-	} else if cfg.Defaults.StudentLoan != "" {
-		req.Plan = cfg.Defaults.StudentLoan
-	}
-
-	// Tax code: flag > config > empty
-	if val, ok := flags["tax-code"]; ok {
-		req.TaxCode = val
-	} else if cfg.Defaults.TaxCode != "" {
-		req.TaxCode = cfg.Defaults.TaxCode
-	}
-
-	// Extra: flag > config > 0
-	if val, ok := flags["extra"]; ok {
-		extraInt, err := strconv.Atoi(val)
-		if err != nil {
-			return nil, fmt.Errorf("extra must be a valid number: %s", val)
-		}
-		req.Extra = extraInt
-	} else if cfg.Defaults.Extra != 0 {
-		req.Extra = cfg.Defaults.Extra
-	}
-
-	// Income: flag only (required per option)
-	if val, ok := flags["income"]; ok {
-		incomeInt, err := strconv.Atoi(val)
-		if err != nil {
-			return nil, fmt.Errorf("income must be a valid number: %s", val)
-		}
-		req.GrossWage = incomeInt
-	} else {
-		return nil, fmt.Errorf("income is required")
-	}
-
-	// Married: flag > config > default false
-	if val, ok := flags["married"]; ok && val == flagValueTrue {
-		req.Married = "y"
-	} else if cfg.Defaults.Married {
-		req.Married = "y"
-	}
-
-	// Blind: flag > config > default false
-	if val, ok := flags["blind"]; ok && val == flagValueTrue {
-		req.Blind = "y"
-	} else if cfg.Defaults.Blind {
-		req.Blind = "y"
-	}
-
-	// No NI: flag > config > default false
-	if val, ok := flags["no-ni"]; ok && val == flagValueTrue {
-		req.ExNI = "y"
-	} else if cfg.Defaults.NoNI {
-		req.ExNI = "y"
-	}
-
-	// Partner income: flag > config > 0
-	if val, ok := flags["partner-income"]; ok {
-		partnerInt, err := strconv.Atoi(val)
-		if err != nil {
-			return nil, fmt.Errorf("partner-income must be a valid number: %s", val)
-		}
-		req.PartnerGrossWage = partnerInt
-	} else if cfg.Defaults.PartnerIncome != 0 {
-		req.PartnerGrossWage = cfg.Defaults.PartnerIncome
-	}
+	// Apply boolean fields
+	applyBoolField(flags, cfg, &req.Married, "married", cfg.Defaults.Married)
+	applyBoolField(flags, cfg, &req.Blind, "blind", cfg.Defaults.Blind)
+	applyBoolField(flags, cfg, &req.ExNI, "no-ni", cfg.Defaults.NoNI)
 
 	// Normalise region (england -> uk)
 	req.TaxRegion = normalizeRegion(req.TaxRegion)
 
-	return req, nil
+	return nil
+}
+
+// applyStringField applies a string field from flags or config defaults
+func applyStringField(flags map[string]string, _ *config.Config, _ *types.TaxRequest, flagName string, target *string, configDefault, hardDefault string) {
+	if val, ok := flags[flagName]; ok {
+		*target = val
+	} else if configDefault != "" {
+		*target = configDefault
+	} else if hardDefault != "" {
+		*target = hardDefault
+	}
+}
+
+// applyIntField applies an integer field from flags or config defaults
+func applyIntField(flags map[string]string, _ *config.Config, _ *types.TaxRequest, flagName string, target *int, configDefault int) error {
+	if val, ok := flags[flagName]; ok {
+		intVal, err := strconv.Atoi(val)
+		if err != nil {
+			return fmt.Errorf("%s must be a valid number: %s", flagName, val)
+		}
+		*target = intVal
+	} else if configDefault != 0 {
+		*target = configDefault
+	}
+	return nil
+}
+
+// applyBoolField applies a boolean field from flags or config defaults
+func applyBoolField(flags map[string]string, _ *config.Config, target *string, flagName string, configDefault bool) {
+	if val, ok := flags[flagName]; ok && val == flagValueTrue {
+		*target = "y"
+	} else if configDefault {
+		*target = "y"
+	}
 }
 
 // validateOption validates a single comparison option
