@@ -693,6 +693,95 @@ for salary in 50000 75000 100000; do
 done
 ```
 
+## Testing
+
+### Running Tests
+
+The project maintains comprehensive test coverage with over 125 test cases.
+
+```bash
+# Run all tests (quiet mode)
+make test
+
+# Run with verbose output
+make test-verbose
+
+# Run with race detector
+make test-race
+
+# Generate coverage report
+make test-coverage
+# Opens coverage.html in your browser
+```
+
+### Test Coverage
+
+The project maintains **≥90% test coverage** target across core packages. Coverage is tracked but not yet enforced in CI.
+
+View coverage report:
+```bash
+make test-coverage
+open coverage.html  # macOS
+xdg-open coverage.html  # Linux
+```
+
+Current coverage by package:
+- `internal/client`: 82.6% (HTTP client, API interactions)
+- `internal/config`: 91.4% (Configuration loading)
+- `internal/display`: 39.3% (Display formatting)
+- `cmd`: 17.3% (Command logic, validation)
+
+### Updating Golden Files
+
+Display output tests use golden files for regression testing:
+
+```bash
+# Update all golden files after intentional output changes
+make test-update-golden
+
+# Review changes before committing
+git diff .goldenfiles/
+```
+
+### Test Structure
+
+```
+cmd/                    - Command tests (validation, parsing, integration)
+  check_test.go        - Validation logic tests
+  check_logic_test.go  - Calculation and date logic tests
+internal/client/        - API client tests (HTTP mocking)
+internal/config/        - Configuration loading tests
+internal/display/       - Display formatting tests (with stdout capture)
+internal/testutil/      - Shared test utilities and mocks
+.goldenfiles/          - Golden file snapshots for display tests
+```
+
+### Writing Tests
+
+Tests use table-driven patterns and run in parallel where safe:
+
+```go
+func TestExample(t *testing.T) {
+    t.Parallel() // Safe for stateless tests
+    
+    tests := []struct {
+        name string
+        input int
+        want string
+    }{
+        {"zero", 0, "£0.00"},
+        {"positive", 1234, "£1,234.00"},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := formatCurrency(tt.input)
+            assert.Equal(t, tt.want, got)
+        })
+    }
+}
+```
+
 ## Building with Version Info
 
 To build with version information:

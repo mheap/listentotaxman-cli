@@ -24,6 +24,13 @@ func New() *Client {
 	}
 }
 
+// NewWithHTTPClient creates a new API client with a custom HTTP client (for testing)
+func NewWithHTTPClient(httpClient *http.Client) *Client {
+	return &Client{
+		httpClient: httpClient,
+	}
+}
+
 // CalculateTax calls the listentotaxman API and returns the tax calculation
 func (c *Client) CalculateTax(req *types.TaxRequest) (*types.TaxResponse, error) {
 	// Set fixed fields

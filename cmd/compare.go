@@ -19,6 +19,11 @@ type ComparisonOption struct {
 	Request *types.TaxRequest
 }
 
+// clientFactory is a function that creates a new API client (can be mocked in tests)
+var clientFactory = func() *client.Client {
+	return client.New()
+}
+
 var compareCmd = &cobra.Command{
 	Use:   "compare --option LABEL --income AMOUNT [flags] --option LABEL --income AMOUNT [flags]...",
 	Short: "Compare tax calculations across multiple scenarios",
@@ -136,7 +141,7 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	}
 
 	// Call API for each option
-	apiClient := client.New()
+	apiClient := clientFactory()
 	results := make([]types.ComparisonResult, len(options))
 
 	for i, opt := range options {

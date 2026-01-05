@@ -31,6 +31,14 @@ var (
 	flagPartnerIncome int
 )
 
+// timeNowFunc allows time mocking in tests
+var timeNowFunc = time.Now
+
+// clientFactory allows API client mocking in tests
+var checkClientFactory = func() *client.Client {
+	return client.New()
+}
+
 var checkCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Check tax calculation for a given salary",
@@ -65,7 +73,7 @@ func init() {
 // getDefaultYear returns the default tax year based on current date
 // If today is after April 5th, use current year. Otherwise use previous year.
 func getDefaultYear() string {
-	now := time.Now()
+	now := timeNowFunc()
 	year := now.Year()
 
 	// Create April 5th of current year
@@ -304,7 +312,7 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	}
 
 	// Call API
-	apiClient := client.New()
+	apiClient := checkClientFactory()
 	resp, err := apiClient.CalculateTax(req)
 	if err != nil {
 		return fmt.Errorf("failed to calculate tax: %w", err)
