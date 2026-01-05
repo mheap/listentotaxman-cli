@@ -5,13 +5,17 @@ on:
     tags:
       - 'v*.*.*'
 
+# Explicit permissions for the workflow
 permissions:
-  contents: write
-  packages: write
+  contents: write  # Required for creating releases and uploading assets
+  packages: write  # Required for Docker image publishing (if using ghcr.io)
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for GoReleaser to create releases
+      packages: write  # Required for Docker publishing
     
     steps:
       - name: Checkout code
