@@ -1,3 +1,4 @@
+// Package main is the entry point for the listentotaxman CLI application.
 package main
 
 import (
@@ -7,7 +8,9 @@ import (
 	"github.com/mheap/listentotaxman-cli/cmd"
 )
 
+// Version information set at build time
 var (
+	// Version is the application version
 	Version   = "dev"
 	GitCommit = "unknown"
 	BuildDate = "unknown"

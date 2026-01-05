@@ -1,3 +1,4 @@
+// Package cmd implements the CLI commands for the listentotaxman application.
 package cmd
 
 import (
@@ -6,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mheap/listentotaxman-cli/internal/client"
 	"github.com/mheap/listentotaxman-cli/internal/config"
 	"github.com/mheap/listentotaxman-cli/internal/display"
 	"github.com/mheap/listentotaxman-cli/internal/types"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -29,6 +31,10 @@ var (
 	flagBlind         bool
 	flagNoNI          bool
 	flagPartnerIncome int
+)
+
+const (
+	periodYearly = "yearly"
 )
 
 // timeNowFunc allows time mocking in tests
@@ -67,7 +73,7 @@ func init() {
 	checkCmd.Flags().StringVar(&flagPeriod, "period", "", "Display period (yearly, monthly, weekly, daily, hourly) (default: yearly)")
 
 	// Mark required flags
-	checkCmd.MarkFlagRequired("income")
+	_ = checkCmd.MarkFlagRequired("income")
 }
 
 // getDefaultYear returns the default tax year based on current date
@@ -89,7 +95,7 @@ func getDefaultYear() string {
 // getPeriodDivisor returns the divisor for a given period
 func getPeriodDivisor(period string) float64 {
 	switch period {
-	case "yearly":
+	case periodYearly:
 		return 1.0
 	case "monthly":
 		return 12.0
@@ -106,7 +112,7 @@ func getPeriodDivisor(period string) float64 {
 
 // adjustResponseForPeriod creates a copy of the response with values adjusted for the period
 func adjustResponseForPeriod(resp *types.TaxResponse, period string) *types.TaxResponse {
-	if period == "yearly" {
+	if period == periodYearly {
 		return resp
 	}
 
@@ -249,14 +255,14 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		req.PartnerGrossWage = cfg.Defaults.PartnerIncome
 	}
 
-	// Normalize region (england -> uk)
+	// Normalise region (england -> uk)
 	req.TaxRegion = normalizeRegion(req.TaxRegion)
 
 	// Validate year is a 4-digit number
 	if len(req.Year) != 4 {
 		return fmt.Errorf("year must be a 4-digit number, got: %s", req.Year)
 	}
-	if _, err := strconv.Atoi(req.Year); err != nil {
+	if _, yearErr := strconv.Atoi(req.Year); yearErr != nil {
 		return fmt.Errorf("year must be a valid number: %s", req.Year)
 	}
 
@@ -290,8 +296,8 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Period: flag > config > default "yearly"
-	period := "yearly"
+	// Period: flag > config > default periodYearly
+	period := periodYearly
 	if flagPeriod != "" {
 		period = flagPeriod
 	} else if cfg.Defaults.Period != "" {
@@ -299,7 +305,7 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate period
-	validPeriods := []string{"yearly", "monthly", "weekly", "daily", "hourly"}
+	validPeriods := []string{periodYearly, "monthly", "weekly", "daily", "hourly"}
 	isValid := false
 	for _, vp := range validPeriods {
 		if period == vp {
@@ -329,10 +335,10 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		fmt.Println(string(jsonData))
 	} else if flagVerbose {
 		// Display detailed breakdown
-		display.DisplayDetailed(resp, period, req)
+		display.Detailed(resp, period, req)
 	} else {
 		// Display summary table
-		display.DisplaySummary(resp, period, req)
+		display.Summary(resp, period, req)
 	}
 
 	return nil

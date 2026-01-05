@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mheap/listentotaxman-cli/internal/types"
 )
 
 // Test validation logic that's extracted and testable

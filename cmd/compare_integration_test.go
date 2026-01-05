@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/client"
-	"github.com/mheap/listentotaxman-cli/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/client"
+	"github.com/mheap/listentotaxman-cli/internal/testutil"
 )
 
 func TestRunCompare_TwoOptions(t *testing.T) {
@@ -17,8 +18,8 @@ func TestRunCompare_TwoOptions(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock API client
 	originalClientFactory := clientFactory
@@ -58,8 +59,8 @@ func TestRunCompare_WithJSONFlag(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock API client
 	originalClientFactory := clientFactory
@@ -100,8 +101,8 @@ func TestRunCompare_WithPeriodFlag(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock API client
 	originalClientFactory := clientFactory
@@ -141,8 +142,8 @@ func TestRunCompare_LessThanTwoOptions(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock os.Args
 	originalArgs := os.Args
@@ -165,8 +166,8 @@ func TestRunCompare_MoreThanFourOptions(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock os.Args
 	originalArgs := os.Args
@@ -193,8 +194,8 @@ func TestRunCompare_InvalidPeriod(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock os.Args
 	originalArgs := os.Args
@@ -219,8 +220,8 @@ func TestRunCompare_ValidationError(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock os.Args with invalid income (zero)
 	originalArgs := os.Args
@@ -244,8 +245,8 @@ func TestRunCompare_APIError(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock API client with error
 	originalClientFactory := clientFactory
@@ -301,8 +302,8 @@ func TestRunCompare_FourOptionsSuccess(t *testing.T) {
 
 	// Create config file
 	configPath := testutil.CreateTempConfigFile(t, testutil.ValidConfigYAML)
-	os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
-	t.Cleanup(func() { os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
+	_ = os.Setenv("LISTENTOTAXMAN_CONFIG", configPath)
+	t.Cleanup(func() { _ = os.Unsetenv("LISTENTOTAXMAN_CONFIG") })
 
 	// Mock API client
 	originalClientFactory := clientFactory

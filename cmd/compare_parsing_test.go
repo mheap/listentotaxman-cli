@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mheap/listentotaxman-cli/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/config"
 )
 
 func TestParseComparisonArgs_BasicTwoOptions(t *testing.T) {
@@ -365,7 +366,7 @@ func TestBuildTaxRequest_RegionNormalization(t *testing.T) {
 
 	req, err := buildTaxRequest(flags, cfg)
 	require.NoError(t, err)
-	// "england" should be normalized to "uk"
+	// "england" should be normalised to "uk"
 	assert.Equal(t, "uk", req.TaxRegion)
 }
 

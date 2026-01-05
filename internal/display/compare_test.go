@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/testutil"
-	"github.com/mheap/listentotaxman-cli/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/testutil"
+	"github.com/mheap/listentotaxman-cli/internal/types"
 )
 
 func TestGenerateBorder(t *testing.T) {
@@ -167,7 +168,7 @@ func TestBuildMetadata(t *testing.T) {
 	assert.Equal(t, "scotland", metadata["Option2"]["tax_region"])
 }
 
-func TestDisplayComparison(t *testing.T) {
+func TestComparison(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:   "Job 1",
@@ -188,7 +189,7 @@ func TestDisplayComparison(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "yearly", false)
+		Comparison(results, "yearly", false)
 	})
 
 	// Verify table structure
@@ -206,7 +207,7 @@ func TestDisplayComparison(t *testing.T) {
 	assert.Contains(t, output, "Net Pay")
 }
 
-func TestDisplayComparison_WithStatus(t *testing.T) {
+func TestComparison_WithStatus(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:    "Single",
@@ -224,7 +225,7 @@ func TestDisplayComparison_WithStatus(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "yearly", false)
+		Comparison(results, "yearly", false)
 	})
 
 	// Verify status indicators
@@ -233,7 +234,7 @@ func TestDisplayComparison_WithStatus(t *testing.T) {
 	assert.Contains(t, output, "B") // Blind
 }
 
-func TestDisplayComparison_Verbose(t *testing.T) {
+func TestComparison_Verbose(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:    "Test",
@@ -243,7 +244,7 @@ func TestDisplayComparison_Verbose(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "yearly", true)
+		Comparison(results, "yearly", true)
 	})
 
 	// Verify verbose fields
@@ -252,7 +253,7 @@ func TestDisplayComparison_Verbose(t *testing.T) {
 	assert.Contains(t, output, "Basic Rate Tax")
 }
 
-func TestDisplayComparisonJSON(t *testing.T) {
+func TestComparisonJSON(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:    "Option1",
@@ -267,7 +268,7 @@ func TestDisplayComparisonJSON(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparisonJSON(results, "monthly")
+		ComparisonJSON(results, "monthly")
 	})
 
 	// Verify it's valid JSON
@@ -318,7 +319,7 @@ func TestPrintComparisonRow(t *testing.T) {
 	assert.Contains(t, output, "£60,000.00")
 }
 
-func TestDisplayComparison_FourOptions(t *testing.T) {
+func TestComparison_FourOptions(t *testing.T) {
 	results := []types.ComparisonResult{
 		{Label: "A", Request: testutil.CreateSampleTaxRequest(), Response: testutil.CreateSampleTaxResponse()},
 		{Label: "B", Request: testutil.CreateSampleTaxRequest(), Response: testutil.CreateSampleTaxResponse()},
@@ -327,7 +328,7 @@ func TestDisplayComparison_FourOptions(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "yearly", false)
+		Comparison(results, "yearly", false)
 	})
 
 	// Verify all labels present
@@ -337,7 +338,7 @@ func TestDisplayComparison_FourOptions(t *testing.T) {
 	assert.Contains(t, output, "D")
 }
 
-func TestDisplayComparison_Monthly(t *testing.T) {
+func TestComparison_Monthly(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:   "Test",
@@ -349,14 +350,14 @@ func TestDisplayComparison_Monthly(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "monthly", false)
+		Comparison(results, "monthly", false)
 	})
 
 	// Should show monthly amount
 	assert.Contains(t, output, "£5,000.00")
 }
 
-func TestDisplayComparison_LabelTruncation(t *testing.T) {
+func TestComparison_LabelTruncation(t *testing.T) {
 	results := []types.ComparisonResult{
 		{
 			Label:    "Very Long Label That Should Be Truncated",
@@ -366,7 +367,7 @@ func TestDisplayComparison_LabelTruncation(t *testing.T) {
 	}
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayComparison(results, "yearly", false)
+		Comparison(results, "yearly", false)
 	})
 
 	// Long labels should be truncated with ellipsis

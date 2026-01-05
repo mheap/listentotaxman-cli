@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/testutil"
-	"github.com/mheap/listentotaxman-cli/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/testutil"
+	"github.com/mheap/listentotaxman-cli/internal/types"
 )
 
 func TestCalculateTax_Success(t *testing.T) {

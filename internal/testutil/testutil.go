@@ -9,10 +9,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/types"
 )
 
 var updateGolden = flag.Bool("update-golden", false, "update golden files")
@@ -24,23 +25,23 @@ func CreateTempConfigFile(t *testing.T, content string) string {
 	// Create temp directory
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".config", "listentotaxman")
-	err := os.MkdirAll(configDir, 0755)
+	err := os.MkdirAll(configDir, 0755) //nolint:gosec // Test files only
 	require.NoError(t, err, "failed to create temp config directory")
 
 	// Write config file
 	configFile := filepath.Join(configDir, "config.yaml")
-	err = os.WriteFile(configFile, []byte(content), 0644)
+	err = os.WriteFile(configFile, []byte(content), 0644) //nolint:gosec // Test files only
 	require.NoError(t, err, "failed to write temp config file")
 
 	// Update HOME and USERPROFILE to point to temp directory for config loading
 	// HOME is used on Unix/macOS, USERPROFILE is used on Windows
 	originalHome := os.Getenv("HOME")
 	originalUserProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("USERPROFILE", tempDir)
+	require.NoError(t, os.Setenv("HOME", tempDir))
+	require.NoError(t, os.Setenv("USERPROFILE", tempDir))
 	t.Cleanup(func() {
-		os.Setenv("HOME", originalHome)
-		os.Setenv("USERPROFILE", originalUserProfile)
+		_ = os.Setenv("HOME", originalHome)
+		_ = os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	return configDir
@@ -70,14 +71,14 @@ func CaptureStdout(t *testing.T, f func()) string {
 	var buf bytes.Buffer
 
 	go func() {
-		io.Copy(&buf, r)
+		_, _ = io.Copy(&buf, r)
 		close(done)
 	}()
 
 	f()
 
 	// Close writer and wait for reader to finish
-	w.Close()
+	_ = w.Close()
 	<-done
 
 	return buf.String()
@@ -187,14 +188,14 @@ func CompareGoldenFile(t *testing.T, name string, actual string) {
 
 	if *updateGolden {
 		// Update golden file
-		err := os.WriteFile(goldenPath, []byte(actual), 0644)
+		err := os.WriteFile(goldenPath, []byte(actual), 0644) //nolint:gosec // Test golden files
 		require.NoError(t, err, "failed to update golden file")
 		t.Logf("Updated golden file: %s", goldenPath)
 		return
 	}
 
 	// Compare with golden file
-	expected, err := os.ReadFile(goldenPath)
+	expected, err := os.ReadFile(goldenPath) //nolint:gosec // Test golden files
 	require.NoError(t, err, "failed to read golden file: %s (run with -update-golden to create)", goldenPath)
 
 	assert.Equal(t, string(expected), actual, "output should match golden file: %s", goldenPath)

@@ -1,3 +1,4 @@
+// Package testutil provides testing utilities and fixtures.
 package testutil
 
 // ValidConfigYAML is a complete valid config file for testing

@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mheap/listentotaxman-cli/internal/testutil"
 	"github.com/mheap/listentotaxman-cli/internal/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetDefaultYear(t *testing.T) {

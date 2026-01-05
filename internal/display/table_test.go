@@ -3,9 +3,10 @@ package display
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mheap/listentotaxman-cli/internal/testutil"
 	"github.com/mheap/listentotaxman-cli/internal/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFormatCurrency(t *testing.T) {
@@ -109,12 +110,12 @@ func TestGetPeriodLabel(t *testing.T) {
 	}
 }
 
-func TestDisplaySummary_BasicOutput(t *testing.T) {
+func TestSummary_BasicOutput(t *testing.T) {
 	resp := testutil.CreateSampleTaxResponse()
 	req := testutil.CreateSampleTaxRequest()
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplaySummary(resp, "yearly", req)
+		Summary(resp, "yearly", req)
 	})
 
 	// Verify table structure
@@ -130,20 +131,20 @@ func TestDisplaySummary_BasicOutput(t *testing.T) {
 	assert.Contains(t, output, "Net Pay")
 }
 
-func TestDisplaySummary_WithMarriedStatus(t *testing.T) {
+func TestSummary_WithMarriedStatus(t *testing.T) {
 	resp := testutil.CreateSampleTaxResponse()
 	req := testutil.CreateSampleTaxRequest(func(r *types.TaxRequest) {
 		r.Married = "y"
 	})
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplaySummary(resp, "yearly", req)
+		Summary(resp, "yearly", req)
 	})
 
 	assert.Contains(t, output, "Married")
 }
 
-func TestDisplaySummary_WithAllStatus(t *testing.T) {
+func TestSummary_WithAllStatus(t *testing.T) {
 	resp := testutil.CreateSampleTaxResponse()
 	req := testutil.CreateSampleTaxRequest(func(r *types.TaxRequest) {
 		r.Married = "y"
@@ -152,7 +153,7 @@ func TestDisplaySummary_WithAllStatus(t *testing.T) {
 	})
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplaySummary(resp, "yearly", req)
+		Summary(resp, "yearly", req)
 	})
 
 	assert.Contains(t, output, "Married")
@@ -160,12 +161,12 @@ func TestDisplaySummary_WithAllStatus(t *testing.T) {
 	assert.Contains(t, output, "NI Exempt")
 }
 
-func TestDisplaySummary_NoStatus(t *testing.T) {
+func TestSummary_NoStatus(t *testing.T) {
 	resp := testutil.CreateSampleTaxResponse()
 	req := testutil.CreateSampleTaxRequest()
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplaySummary(resp, "yearly", req)
+		Summary(resp, "yearly", req)
 	})
 
 	// Should not have status line
@@ -174,7 +175,7 @@ func TestDisplaySummary_NoStatus(t *testing.T) {
 	assert.Greater(t, 1500, lineCount)
 }
 
-func TestDisplayDetailed_StatusLine(t *testing.T) {
+func TestDetailed_StatusLine(t *testing.T) {
 	resp := testutil.CreateSampleTaxResponse()
 	req := testutil.CreateSampleTaxRequest(func(r *types.TaxRequest) {
 		r.Married = "y"
@@ -182,7 +183,7 @@ func TestDisplayDetailed_StatusLine(t *testing.T) {
 	})
 
 	output := testutil.CaptureStdout(t, func() {
-		DisplayDetailed(resp, "yearly", req)
+		Detailed(resp, "yearly", req)
 	})
 
 	assert.Contains(t, output, "Status: Married • Blind Allowance")

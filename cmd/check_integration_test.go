@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/client"
-	"github.com/mheap/listentotaxman-cli/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/client"
+	"github.com/mheap/listentotaxman-cli/internal/testutil"
 )
 
 func TestRunCheck_BasicIncome(t *testing.T) {
@@ -77,7 +78,7 @@ func TestRunCheck_WithJSONOutput(t *testing.T) {
 	flagIncome = 100000
 	flagJSON = true
 	flagVerbose = false
-	flagPeriod = "yearly"
+	flagPeriod = periodYearly
 
 	// Capture stdout
 	output := testutil.CaptureStdout(t, func() {
@@ -112,7 +113,7 @@ func TestRunCheck_WithVerboseOutput(t *testing.T) {
 	flagIncome = 100000
 	flagJSON = false
 	flagVerbose = true
-	flagPeriod = "yearly"
+	flagPeriod = periodYearly
 
 	// Capture stdout
 	output := testutil.CaptureStdout(t, func() {
@@ -157,7 +158,7 @@ func TestRunCheck_WithAllFlags(t *testing.T) {
 	flagPartnerIncome = 25000
 	flagJSON = false
 	flagVerbose = false
-	flagPeriod = "yearly"
+	flagPeriod = periodYearly
 
 	// Capture stdout
 	output := testutil.CaptureStdout(t, func() {

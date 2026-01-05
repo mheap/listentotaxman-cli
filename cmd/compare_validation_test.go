@@ -3,9 +3,10 @@ package cmd
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mheap/listentotaxman-cli/internal/config"
 	"github.com/mheap/listentotaxman-cli/internal/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateOption_ValidOption(t *testing.T) {

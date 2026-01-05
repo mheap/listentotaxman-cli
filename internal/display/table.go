@@ -91,8 +91,8 @@ func getPeriodLabel(period string) string {
 	}
 }
 
-// DisplaySummary displays the tax calculation as a summary table (Option A)
-func DisplaySummary(resp *types.TaxResponse, period string, req *types.TaxRequest) {
+// Summary displays the tax calculation as a summary table (Option A)
+func Summary(resp *types.TaxResponse, period string, req *types.TaxRequest) {
 	divisor := getPeriodDivisor(period)
 	periodLabel := getPeriodLabel(period)
 
@@ -148,8 +148,8 @@ func DisplaySummary(resp *types.TaxResponse, period string, req *types.TaxReques
 	fmt.Printf("╚══════════════════════════════════════════════╝\n\n")
 }
 
-// DisplayDetailed displays the tax calculation with detailed breakdown (Option B)
-func DisplayDetailed(resp *types.TaxResponse, period string, req *types.TaxRequest) {
+// Detailed displays the tax calculation with detailed breakdown (Option B)
+func Detailed(resp *types.TaxResponse, period string, req *types.TaxRequest) {
 	divisor := getPeriodDivisor(period)
 	periodLabel := getPeriodLabel(period)
 

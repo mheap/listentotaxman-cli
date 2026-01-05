@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mheap/listentotaxman-cli/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mheap/listentotaxman-cli/internal/testutil"
 )
 
 func TestLoad_NoConfigFile(t *testing.T) {
@@ -17,11 +18,11 @@ func TestLoad_NoConfigFile(t *testing.T) {
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	originalUserProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("USERPROFILE", tempDir)
+	require.NoError(t, os.Setenv("HOME", tempDir))
+	require.NoError(t, os.Setenv("USERPROFILE", tempDir))
 	t.Cleanup(func() {
-		os.Setenv("HOME", originalHome)
-		os.Setenv("USERPROFILE", originalUserProfile)
+		_ = os.Setenv("HOME", originalHome)
+		_ = os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Execute
@@ -116,11 +117,11 @@ func TestLoad_InvalidYAML(t *testing.T) {
 
 	originalHome := os.Getenv("HOME")
 	originalUserProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("USERPROFILE", tempDir)
+	require.NoError(t, os.Setenv("HOME", tempDir))
+	require.NoError(t, os.Setenv("USERPROFILE", tempDir))
 	t.Cleanup(func() {
-		os.Setenv("HOME", originalHome)
-		os.Setenv("USERPROFILE", originalUserProfile)
+		_ = os.Setenv("HOME", originalHome)
+		_ = os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Execute
@@ -138,11 +139,11 @@ func TestLoad_AllDefaultFields(t *testing.T) {
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	originalUserProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("USERPROFILE", tempDir)
+	require.NoError(t, os.Setenv("HOME", tempDir))
+	require.NoError(t, os.Setenv("USERPROFILE", tempDir))
 	t.Cleanup(func() {
-		os.Setenv("HOME", originalHome)
-		os.Setenv("USERPROFILE", originalUserProfile)
+		_ = os.Setenv("HOME", originalHome)
+		_ = os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	tests := []struct {
@@ -224,11 +225,11 @@ func TestGetString_NotInConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	originalUserProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tempDir)
-	os.Setenv("USERPROFILE", tempDir)
+	require.NoError(t, os.Setenv("HOME", tempDir))
+	require.NoError(t, os.Setenv("USERPROFILE", tempDir))
 	t.Cleanup(func() {
-		os.Setenv("HOME", originalHome)
-		os.Setenv("USERPROFILE", originalUserProfile)
+		_ = os.Setenv("HOME", originalHome)
+		_ = os.Setenv("USERPROFILE", originalUserProfile)
 	})
 
 	// Load config (no file exists)

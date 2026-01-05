@@ -6,11 +6,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mheap/listentotaxman-cli/internal/client"
 	"github.com/mheap/listentotaxman-cli/internal/config"
 	"github.com/mheap/listentotaxman-cli/internal/display"
 	"github.com/mheap/listentotaxman-cli/internal/types"
-	"github.com/spf13/cobra"
+)
+
+const (
+	flagValueTrue  = "true"
+	periodFlagName = "--period"
 )
 
 // ComparisonOption holds one option's label and tax request parameters
@@ -120,7 +126,7 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get period (global flag > config > default)
-	period := "yearly"
+	period := periodYearly
 	if periodFlag, ok := globalFlags["period"]; ok && periodFlag != "" {
 		period = periodFlag
 	} else if cfg.Defaults.Period != "" {
@@ -128,7 +134,7 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate period
-	validPeriods := []string{"yearly", "monthly", "weekly", "daily", "hourly"}
+	validPeriods := []string{periodYearly, "monthly", "weekly", "daily", "hourly"}
 	isValid := false
 	for _, vp := range validPeriods {
 		if period == vp {
@@ -157,13 +163,13 @@ func runCompare(cmd *cobra.Command, args []string) error {
 	}
 
 	// Display results
-	jsonFlag := globalFlags["json"] == "true"
-	verboseFlag := globalFlags["verbose"] == "true"
+	jsonFlag := globalFlags["json"] == flagValueTrue
+	verboseFlag := globalFlags["verbose"] == flagValueTrue
 
 	if jsonFlag {
-		display.DisplayComparisonJSON(results, period)
+		display.ComparisonJSON(results, period)
 	} else {
-		display.DisplayComparison(results, period, verboseFlag)
+		display.Comparison(results, period, verboseFlag)
 	}
 
 	return nil
@@ -190,13 +196,13 @@ func parseComparisonArgs(allArgs []string, cfg *config.Config) (map[string]strin
 	globalFlags := make(map[string]string)
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
-		if arg == "--period" && i+1 < len(args) {
+		if arg == periodFlagName && i+1 < len(args) {
 			globalFlags["period"] = args[i+1]
 			i++ // Skip value
 		} else if arg == "--json" {
-			globalFlags["json"] = "true"
+			globalFlags["json"] = flagValueTrue
 		} else if arg == "--verbose" {
-			globalFlags["verbose"] = "true"
+			globalFlags["verbose"] = flagValueTrue
 		}
 	}
 
@@ -250,8 +256,8 @@ func parseOptionChunk(chunk []string, cfg *config.Config) (ComparisonOption, err
 		arg := chunk[i]
 
 		// Skip global flags (they're handled separately)
-		if arg == "--period" || arg == "--json" || arg == "--verbose" {
-			if arg == "--period" && i+1 < len(chunk) {
+		if arg == periodFlagName || arg == "--json" || arg == "--verbose" {
+			if arg == periodFlagName && i+1 < len(chunk) {
 				i++ // Skip the value too
 			}
 			continue
@@ -267,7 +273,7 @@ func parseOptionChunk(chunk []string, cfg *config.Config) (ComparisonOption, err
 				i++ // Skip the value
 			} else {
 				// Boolean flag (no value)
-				flags[flagName] = "true"
+				flags[flagName] = flagValueTrue
 			}
 		}
 	}
@@ -362,21 +368,21 @@ func buildTaxRequest(flags map[string]string, cfg *config.Config) (*types.TaxReq
 	}
 
 	// Married: flag > config > default false
-	if val, ok := flags["married"]; ok && val == "true" {
+	if val, ok := flags["married"]; ok && val == flagValueTrue {
 		req.Married = "y"
 	} else if cfg.Defaults.Married {
 		req.Married = "y"
 	}
 
 	// Blind: flag > config > default false
-	if val, ok := flags["blind"]; ok && val == "true" {
+	if val, ok := flags["blind"]; ok && val == flagValueTrue {
 		req.Blind = "y"
 	} else if cfg.Defaults.Blind {
 		req.Blind = "y"
 	}
 
 	// No NI: flag > config > default false
-	if val, ok := flags["no-ni"]; ok && val == "true" {
+	if val, ok := flags["no-ni"]; ok && val == flagValueTrue {
 		req.ExNI = "y"
 	} else if cfg.Defaults.NoNI {
 		req.ExNI = "y"
@@ -393,14 +399,14 @@ func buildTaxRequest(flags map[string]string, cfg *config.Config) (*types.TaxReq
 		req.PartnerGrossWage = cfg.Defaults.PartnerIncome
 	}
 
-	// Normalize region (england -> uk)
+	// Normalise region (england -> uk)
 	req.TaxRegion = normalizeRegion(req.TaxRegion)
 
 	return req, nil
 }
 
 // validateOption validates a single comparison option
-func validateOption(opt *ComparisonOption, cfg *config.Config) error {
+func validateOption(opt *ComparisonOption, _ *config.Config) error {
 	req := opt.Request
 
 	// Validate year is a 4-digit number

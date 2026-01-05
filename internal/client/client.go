@@ -1,3 +1,4 @@
+// Package client provides HTTP client functionality for the listentotaxman API.
 package client
 
 import (
@@ -56,7 +57,7 @@ func (c *Client) CalculateTax(req *types.TaxRequest) (*types.TaxResponse, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)

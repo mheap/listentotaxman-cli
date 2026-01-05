@@ -1,3 +1,4 @@
+// Package types defines data structures used across the application.
 package types
 
 // TaxRequest represents the API request structure
