@@ -1,5 +1,4 @@
-version: 2
-
+# GoReleaser v1 configuration
 project_name: listentotaxman
 
 env:
@@ -52,7 +51,6 @@ checksum:
   algorithm: sha256
 
 changelog:
-  use: github
   sort: asc
   filters:
     exclude:
@@ -61,21 +59,9 @@ changelog:
       - "^ci:"
       - Merge pull request
       - Merge branch
-  groups:
-    - title: Features
-      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
-      order: 0
-    - title: Bug Fixes
-      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
-      order: 1
-    - title: Documentation
-      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
-      order: 2
-    - title: Others
-      order: 999
 
 brews:
-  - repository:
+  - tap:
       owner: mheap
       name: homebrew-tap
       token: "{{ .Env.GH_PAT }}"
