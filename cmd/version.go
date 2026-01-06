@@ -10,7 +10,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
 	Long:  `Print the version number of listentotaxman CLI`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("listentotaxman version %s\n", version)
 		if gitCommit != "unknown" {
 			fmt.Printf("  commit: %s\n", gitCommit)

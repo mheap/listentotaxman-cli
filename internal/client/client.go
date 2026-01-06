@@ -1,3 +1,4 @@
+// Package client provides HTTP client functionality for the listentotaxman API.
 package client
 
 import (
@@ -21,6 +22,13 @@ type Client struct {
 func New() *Client {
 	return &Client{
 		httpClient: &http.Client{},
+	}
+}
+
+// NewWithHTTPClient creates a new API client with a custom HTTP client (for testing)
+func NewWithHTTPClient(httpClient *http.Client) *Client {
+	return &Client{
+		httpClient: httpClient,
 	}
 }
 
@@ -49,7 +57,7 @@ func (c *Client) CalculateTax(req *types.TaxRequest) (*types.TaxResponse, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)

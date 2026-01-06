@@ -693,6 +693,106 @@ for salary in 50000 75000 100000; do
 done
 ```
 
+## Testing
+
+### Running Tests
+
+The project maintains comprehensive test coverage with 200 test cases.
+
+```bash
+# Run all tests (quiet mode)
+make test
+
+# Run with verbose output
+make test-verbose
+
+# Run with race detector
+make test-race
+
+# Generate coverage report
+make test-coverage
+# Opens coverage.html in your browser
+
+# Run CI checks (includes coverage threshold)
+make test-ci
+```
+
+### Test Coverage
+
+The project maintains **≥90% test coverage** (91.3%) across core packages. Coverage excludes the `internal/testutil` package as it contains test helpers.
+
+View coverage report:
+```bash
+make test-coverage
+open coverage.html  # macOS
+xdg-open coverage.html  # Linux
+```
+
+Current coverage by package:
+- `internal/config`: 94.3% (Configuration loading)
+- `internal/display`: 94.0% (Display formatting)
+- `cmd`: 88.9% (Command logic, validation, integration)
+- `internal/client`: 79.2% (HTTP client, API interactions)
+
+### Updating Golden Files
+
+Display output tests use golden files for regression testing:
+
+```bash
+# Update all golden files after intentional output changes
+make test-update-golden
+
+# Review changes before committing
+git diff .goldenfiles/
+```
+
+### Test Structure
+
+```
+cmd/                          - Command tests (validation, parsing, integration)
+  check_test.go              - Validation logic tests
+  check_logic_test.go        - Calculation and date logic tests
+  check_integration_test.go  - End-to-end check command tests
+  compare_parsing_test.go    - Argument parsing tests
+  compare_validation_test.go - Input validation tests
+  compare_integration_test.go - End-to-end compare command tests
+internal/client/              - API client tests (HTTP mocking)
+internal/config/              - Configuration loading tests
+internal/display/             - Display formatting tests
+  table_test.go              - Table display tests
+  compare_test.go            - Comparison display tests
+internal/testutil/            - Shared test utilities and mocks
+  testutil.go                - Test helpers (excluded from coverage)
+  mocks.go                   - HTTP mocking
+  fixtures.go                - Test data
+```
+
+### Writing Tests
+
+Tests use table-driven patterns and run in parallel where safe:
+
+```go
+func TestExample(t *testing.T) {
+    t.Parallel() // Safe for stateless tests
+    
+    tests := []struct {
+        name string
+        input int
+        want string
+    }{
+        {"zero", 0, "£0.00"},
+        {"positive", 1234, "£1,234.00"},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := formatCurrency(tt.input)
+            assert.Equal(t, tt.want, got)
+        })
+    }
+}
+```
+
 ## Building with Version Info
 
 To build with version information:

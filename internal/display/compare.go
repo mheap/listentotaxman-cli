@@ -1,3 +1,4 @@
+// Package display provides output formatting and display functions for tax calculations.
 package display
 
 import (
@@ -8,8 +9,12 @@ import (
 	"github.com/mheap/listentotaxman-cli/internal/types"
 )
 
-// DisplayComparison displays a comparison table for multiple tax calculations
-func DisplayComparison(results []types.ComparisonResult, period string, verbose bool) {
+const (
+	boxHorizontalDouble = "═"
+)
+
+// Comparison displays a comparison table for multiple tax calculations
+func Comparison(results []types.ComparisonResult, period string, verbose bool) {
 	divisor := getPeriodDivisor(period)
 
 	// Calculate table dimensions
@@ -190,13 +195,13 @@ func generateBorder(numOptions, fieldColWidth, valueColWidth int, borderType str
 
 	switch borderType {
 	case "top":
-		left, mid, right, horiz, vert = "╔", "╦", "╗", "═", "═"
+		left, mid, right, horiz, vert = "╔", "╦", "╗", boxHorizontalDouble, boxHorizontalDouble
 	case "middle":
-		left, mid, right, horiz, vert = "╠", "╬", "╣", "═", "═"
+		left, mid, right, horiz, vert = "╠", "╬", "╣", boxHorizontalDouble, boxHorizontalDouble
 	case "separator":
-		left, mid, right, horiz, vert = "╠", "╬", "╣", "═", "═"
+		left, mid, right, horiz, vert = "╠", "╬", "╣", boxHorizontalDouble, boxHorizontalDouble
 	case "bottom":
-		left, mid, right, horiz, vert = "╚", "╩", "╝", "═", "═"
+		left, mid, right, horiz, vert = "╚", "╩", "╝", boxHorizontalDouble, boxHorizontalDouble
 	}
 
 	// Build border: left + field column + (mid + value column) * numOptions + right
@@ -213,8 +218,8 @@ func generateBorder(numOptions, fieldColWidth, valueColWidth int, borderType str
 	return sb.String()
 }
 
-// DisplayComparisonJSON displays comparison results as a JSON comparison object
-func DisplayComparisonJSON(results []types.ComparisonResult, period string) {
+// ComparisonJSON displays comparison results as a JSON comparison object
+func ComparisonJSON(results []types.ComparisonResult, period string) {
 	divisor := getPeriodDivisor(period)
 
 	// Build comparison object structure
@@ -227,7 +232,7 @@ func DisplayComparisonJSON(results []types.ComparisonResult, period string) {
 	// Marshal to JSON
 	jsonData, err := json.MarshalIndent(output, "", "  ")
 	if err != nil {
-		fmt.Printf("Error marshaling JSON: %v\n", err)
+		fmt.Printf("Error marshalling JSON: %v\n", err)
 		return
 	}
 
